@@ -12,8 +12,15 @@ import (
 /*
 Build a mux to handle the endpoints required for oauth.
 
-This assumes that there are already middleware set up to add a redis connection
-to c.Env
+ baseUrl - the full URL to the point where the oauth views are added, including trailing /
+ prefix  - path prefix for the oauth views without trailing /
+
+For example "http://localhost:7778/login/oauth/", "/login/oauth".  As you can tell we only have two
+parameters because I've been too lazy to parse the url
+
+This function assumes that there are already middleware set up to add a redis connection
+to c.Env["redis"], and that the session middleware from github.com/philpearl/tt_goji_middleware
+is in the stack.
 */
 func Build(baseUrl, prefix string) *web.Mux {
 
@@ -29,7 +36,7 @@ func Build(baseUrl, prefix string) *web.Mux {
 	mux.Use(base.BuildEnvSet("sessionholder", sessionHolder))
 	mux.Use(base.BuildEnvSet("providerstore", providerStore))
 
-	mux.Get("/start/", views.StartLogin) // TODO - should be Post
+	mux.Get("/start/:provider/", views.StartLogin) // TODO - should be Post - Get easier for immediate testing
 	mux.Get("/callback/", views.OauthCallback)
 	mux.Compile()
 

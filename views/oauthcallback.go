@@ -5,37 +5,42 @@ import (
 	"net/http"
 
 	// "github.com/golang/oauth2"
-	"github.com/philpearl/tt_goji_oauth/base"
+	"github.com/philpearl/tt_goji_middleware/base"
 	"github.com/philpearl/tt_goji_oauth/providers"
 	"github.com/zenazn/goji/web"
 )
 
 func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
-	sh := c.Env["sessionholder"].(base.SessionHolder)
 	providerStore := c.Env["providerstore"].(*providers.ProviderStore)
 
 	// Get the session
-	s, err := sh.Get(c, r)
-	if err != nil {
-		log.Printf("Could not retrieve session in oauth callback. %v", err)
+	s := c.Env["session"].(*base.Session)
+	if s == nil {
+		log.Printf("Could not retrieve session in oauth callback.")
 		http.Error(w, "no session", http.StatusBadRequest)
 		return
 	}
 
 	// Important to check we've been passed back our random value
-	val, ok := s.Get("oauth:state")
+	val, ok := s.Get("oauth:secret")
 	if !ok {
-		log.Printf("No state available in oauth callback")
+		log.Printf("No secret available in oauth callback")
 		http.Error(w, "OAUTH protocol error detected", http.StatusBadRequest)
 		return
 	}
-	state := val.(string)
+	secret := val.(int64)
 
 	// Extract interesting parameters from response.
 	r.ParseForm()
-	rstate := r.Form.Get("state")
-	if rstate != state {
-		log.Printf("Mismatched state in oauth callback.  Have %s expected %s", rstate, state)
+	state, err := newOauthStateFromString(r.Form.Get("state"))
+	if err != nil {
+		log.Printf("Failed to decode returned oauth state. %v", err)
+		http.Error(w, "OAUTH protocol error detected", http.StatusBadRequest)
+		return
+	}
+
+	if state.Secret != secret {
+		log.Printf("Mismatched state in oauth callback.  Have %s expected %s", secret, state.Secret)
 		http.Error(w, "OAUTH protocol error detected", http.StatusBadRequest)
 		return
 	}
@@ -45,7 +50,7 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 	// ask for some user info.  This will get our token as a side effect
 	// Not that we really need a token - we just want to identify our user
 	rcode := r.Form.Get("code")
-	provider, ok := providerStore.GetProvider("github")
+	provider, ok := providerStore.GetProvider(state.ProviderName)
 	if !ok {
 		http.Error(w, "Oops!", http.StatusInternalServerError)
 		return
@@ -75,7 +80,6 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	// Mark the session as logged in
 	s.Put("logged_in", true)
-	sh.Save(c, s)
 
 	// Redirect to final destination.
 	val, ok = s.Get("next")
