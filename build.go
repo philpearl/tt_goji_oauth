@@ -15,14 +15,13 @@ Build a mux to handle the endpoints required for oauth.
  baseUrl   - the full URL to the point where the oauth views are added,
              including trailing /
  prefix    - path prefix for the oauth views without trailing /
- sessionHolder -
+ sessionHolder - the session store used with th tt_goji_middleware session middleware
  callbacks - callbacks from tt_goji_oauth to application code
 
 For example "http://localhost:7778/login/oauth/", "/login/oauth".  As you can tell we only have two
 parameters because I've been too lazy to parse the url
 
-This function assumes that there are already middleware set up to add a redis connection
-to c.Env["redis"], and that the session middleware from github.com/philpearl/tt_goji_middleware
+This function assumes that the session middleware from [tt_goji_middleware](https://github.com/philpearl/tt_goji_middleware)
 is in the stack.
 */
 func Build(baseUrl, prefix string, sessionHolder mbase.SessionHolder, callbacks base.Callbacks) *web.Mux {
