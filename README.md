@@ -1,5 +1,5 @@
 # tt_goji_oauth
-Add login with OAUTH to your [Goji](https://github/zenazn/goji) webapp.
+Add login with OAUTH to your [Goji](https://github.com/zenazn/goji) webapp.
 
 [![Build Status](https://travis-ci.org/philpearl/tt_goji_oauth.svg)](https://travis-ci.org/philpearl/tt_goji_oauth) [![GoDoc](https://godoc.org/github.com/philpearl/tt_goji_oauth?status.svg)](https://godoc.org/github.com/philpearl/tt_goji_oauth)
 
