@@ -1,25 +1,26 @@
 # tt_goji_oauth
-Add login with OAUTH to your GOJI webapp.
+Add login with OAUTH to your [Goji](https://github/zenazn/goji) webapp.
 
-Assumes there's a redigo redis connection in c.Env["redis"]. Or could just use a global map
+[![Build Status](https://travis-ci.org/philpearl/tt_goji_oauth.svg)](https://travis-ci.org/philpearl/tt_goji_oauth) [![GoDoc](https://godoc.org/github.com/philpearl/tt_goji_oauth?status.svg)](https://godoc.org/github.com/philpearl/tt_goji_oauth)
 
-## TODO
-- GET basic login page
-- POST login action
-  x choose which provider
-  x add a cookie for a session
-  x create random state string, store in session
-  x redirect to auth URL
-- POST/GET?? oauth callback
-  x extract random string from session and check
-  x exchange temp code for token
-  x get user info (user id, email)
-  - get / create user info
-  - update session to include user info / logged in status
 
-  x move session out into middleware. Session needs to exist outside of the oauth code
-  - flesh out DB thingy
+Currently supports github, but additional OAUTH providers can be plugged in.
 
-/login - plain page for logging in.
-/login/oauth/start
-/login/oauth/callback
+## Code state
+I've only just written this and haven't used it in anger yet.
+
+## How to use
+See the example code in /example for full details, but the basics are as follows.
+
+1. Create a SessionHolder from https://github.com/philpearl/tt_goji_middleware/base, and add session middleware to your mux.
+2. Call tt_goji_oauth.Build() and add the handler it returns to your mux.  We suggest you add it at /login/oauth.
+3. Add pages that have logged-in users to your mux beneath the session middleware.
+4. To login, POST to /login/oauth/start/github/.  Add a 'next' parameter to control where the user is redirected to after login
+5. When login completes the callback you registered calling tt_goji_oauth.Build() will be called with user information.  You should check the user against your database at this point, and set up information in the session.
+6. The user will be redirected to /, or where-ever you specified via the next parameter.
+
+## Future
+
+1. More providers - including google & facebook that do client-side oauth flows.
+2. Redirect to a different page for a new user.
+3. User specified providers

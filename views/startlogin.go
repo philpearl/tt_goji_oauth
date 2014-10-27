@@ -1,3 +1,6 @@
+/*
+View functions for OAUTH
+*/
 package views
 
 import (
@@ -11,6 +14,11 @@ import (
 	"github.com/zenazn/goji/web"
 )
 
+/*
+StartLogin kicks off the OAUTH process.
+
+Add a 'next' url parameter to control where the user is redirected to after a successful login.
+*/
 func StartLogin(c web.C, w http.ResponseWriter, r *http.Request) {
 	context := c.Env["oauth:context"].(*base.Context)
 	sh := context.SessionHolder

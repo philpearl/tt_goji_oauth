@@ -18,6 +18,7 @@ import (
 )
 
 var (
+	// The template for /
 	index *template.Template
 )
 
@@ -34,13 +35,13 @@ type Callbacks struct {
 /*
 GetOrCreateUser is called by tt_goji_oauth
 */
-func (cbk Callbacks) GetOrCreateUser(c web.C, providerName string, user map[string]interface{}) error {
+func (cbk Callbacks) GetOrCreateUser(c web.C, providerName string, user map[string]interface{}) (string, error) {
 	// Here is where we should ensure the user info is stored in the DB, but we can cheat somewhat by
 	// just adding the user info to the session
 	session, _ := base.SessionFromEnv(&c)
 
 	session.Put("user", user)
-	return nil
+	return "", nil
 }
 
 /*

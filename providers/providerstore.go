@@ -1,3 +1,6 @@
+/*
+Package providers contains definitions for OAUTH services.
+*/
 package providers
 
 type ProviderStore struct {

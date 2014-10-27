@@ -10,32 +10,22 @@ import (
 	"github.com/zenazn/goji/web"
 )
 
+/*
+When the OAUTH service is done it redirects the user to this view with
+a temporary code that it can exchange for an OAUTH token.  It then calls
+the provider to get identifying information for the user.
+*/
 func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 	context := c.Env["oauth:context"].(*base.Context)
 
 	// Get the session
-	var session *mbase.Session
-	s, ok := c.Env["session"]
-	log.Printf("env is %v", c.Env)
-	if ok {
-		log.Printf("session in env")
-		session, ok = s.(*mbase.Session)
-	}
+	session, ok := mbase.SessionFromEnv(&c)
 
 	if !ok {
 		log.Printf("Could not retrieve session in oauth callback.")
 		http.Error(w, "no session", http.StatusBadRequest)
 		return
 	}
-
-	// Important to check we've been passed back our random value
-	val, ok := session.Get("oauth:secret")
-	if !ok {
-		log.Printf("No secret available in oauth callback")
-		http.Error(w, "OAUTH protocol error detected", http.StatusBadRequest)
-		return
-	}
-	secret := val.(int64)
 
 	// Extract interesting parameters from response.
 	r.ParseForm()
@@ -45,6 +35,15 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "OAUTH protocol error detected", http.StatusBadRequest)
 		return
 	}
+
+	// Important to check we've been passed back our random value.
+	val, ok := session.Get("oauth:secret")
+	if !ok {
+		log.Printf("No secret available in oauth callback")
+		http.Error(w, "OAUTH protocol error detected", http.StatusBadRequest)
+		return
+	}
+	secret := val.(int64)
 
 	if state.Secret != secret {
 		log.Printf("Mismatched state in oauth callback.  Have %s expected %s", secret, state.Secret)
@@ -69,10 +68,7 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Here's our token %v", token)
-
-	// Get some user info.  Note we're github only at this point - if we want to support other
-	// providers here's where we would need to plug something in.
+	// Get some user info.
 	t := conf.NewTransport()
 	t.SetToken(token)
 	user, err := provider.GetUserInfo(t)
@@ -84,7 +80,7 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 	log.Printf("Have user info %v", user)
 
 	// Get or Create a user object.  Again, some kind of plug-in storage would make sense
-	err = context.Callbacks.GetOrCreateUser(c, state.ProviderName, user)
+	url, err := context.Callbacks.GetOrCreateUser(c, state.ProviderName, user)
 	if err != nil {
 		log.Printf("GetOrCreateUser callback failed. %v", err)
 		http.Error(w, "", http.StatusServiceUnavailable)
@@ -94,13 +90,16 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 	// Mark the session as logged in
 	session.Put("logged_in", true)
 
-	// Redirect to final destination.
-	val, ok = session.Get("next")
-	var url string
-	if !ok || val == "" {
-		url = "/"
-	} else {
-		url = val.(string)
+	// Redirect to final destination.  We use the value returned by GetOrCreateUser if set
+	if url == "" {
+		val, ok = session.Get("next")
+		if !ok || val == "" {
+			url = "/"
+		} else {
+			url = val.(string)
+			// Don't reuse next
+			session.Del("next")
+		}
 	}
 
 	w.Header().Set("Location", url)

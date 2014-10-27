@@ -35,7 +35,43 @@ type Provider interface {
 
 /*
 GenericProvider is a base partial implementation of Provider to use to build
-full provider implementations
+full provider implementations.
+
+To create a new provider:
+
+1. Create a new provider struct containing GenericProvider
+
+2. Implement GetUserInfo()
+
+3. Create a function to create the provider and the embedded oauth config.
+
+ type MyServiceProvider struct {
+	GenericProvider
+ }
+
+ func (p *MyServiceProvider) GetUserInfo(t *oauth2.Transport) (map[string]interface{}, error) {
+ 	// Use t to make authenticated requests to My service to get user information and
+ 	// return it in a map
+ }
+
+ func MyService(baseUrl string) Provider {
+	options := &oauth2.Options{
+		ClientID:     ???,
+		ClientSecret: ???,
+		RedirectURL:  baseUrl + "callback/",
+		Scopes:       []string{"user"},
+	}
+	config, _ := oauth2.NewConfig(options, authUrl, tokenUrl)
+
+	return &MyServiceProvider{
+		GenericProvider: GenericProvider{
+			Name:   "MyService",
+			Config: config,
+		},
+	}
+ }
+
+Ahh, except I don't currently have a great mechanism to let you add new providers
 */
 type GenericProvider struct {
 	Name   string
