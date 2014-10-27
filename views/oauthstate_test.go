@@ -8,7 +8,7 @@ func TestOauthState(t *testing.T) {
 	s := newOauthState()
 	s.ProviderName = "dummy"
 
-	state := s.Encode()
+	state := s.encode()
 
 	s2, err := newOauthStateFromString(state)
 	if err != nil {

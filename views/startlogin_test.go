@@ -10,8 +10,9 @@ import (
 	redigo "github.com/garyburd/redigo/redis"
 	"github.com/zenazn/goji/web"
 
-	"github.com/philpearl/tt_goji_middleware/base"
+	mbase "github.com/philpearl/tt_goji_middleware/base"
 	"github.com/philpearl/tt_goji_middleware/redis"
+	"github.com/philpearl/tt_goji_oauth/base"
 	"github.com/philpearl/tt_goji_oauth/providers"
 )
 
@@ -22,6 +23,11 @@ func buildTestContext(t *testing.T) *web.C {
 	os.Setenv("GITHUB_CLIENT_SECRET", "dummy_secret")
 	providerStore := providers.NewProviderStore("http://localhost/", providers.Github)
 
+	context := &base.Context{
+		SessionHolder: sessionHolder,
+		ProviderStore: providerStore,
+	}
+
 	conn, err := redigo.Dial("tcp", ":6379")
 	if err != nil {
 		t.Skipf("Cannot connect to redis. %v", err)
@@ -29,8 +35,7 @@ func buildTestContext(t *testing.T) *web.C {
 	c := web.C{
 		Env: map[string]interface{}{
 			"redis":         conn,
-			"sessionholder": sessionHolder,
-			"providerstore": providerStore,
+			"oauth:context": context,
 		},
 		URLParams: map[string]string{
 			"provider": "github",
@@ -57,7 +62,7 @@ func TestStartLogin(t *testing.T) {
 		t.Fatalf("expected redirect to callback, url is empty")
 	}
 
-	s := c.Env["session"].(*base.Session)
+	s := c.Env["session"].(*mbase.Session)
 	secret, ok := s.Get("oauth:secret")
 	if !ok {
 		t.Fatalf("failed to save secret %v", secret)
@@ -104,7 +109,7 @@ func TestStartLoginNext(t *testing.T) {
 		t.Fatalf("expected redirect got %d, %s", w.Code, w.Body.String())
 	}
 
-	s := c.Env["session"].(*base.Session)
+	s := c.Env["session"].(*mbase.Session)
 
 	next, ok := s.Get("next")
 	if !ok || next.(string) != "http://example.com/next" {

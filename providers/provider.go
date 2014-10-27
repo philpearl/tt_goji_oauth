@@ -33,6 +33,10 @@ type Provider interface {
 	GetConfig() *oauth2.Config
 }
 
+/*
+GenericProvider is a base partial implementation of Provider to use to build
+full provider implementations
+*/
 type GenericProvider struct {
 	Name   string
 	Config *oauth2.Config

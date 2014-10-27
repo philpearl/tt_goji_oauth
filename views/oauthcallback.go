@@ -5,24 +5,31 @@ import (
 	"net/http"
 
 	// "github.com/golang/oauth2"
-	"github.com/philpearl/tt_goji_middleware/base"
-	"github.com/philpearl/tt_goji_oauth/providers"
+	mbase "github.com/philpearl/tt_goji_middleware/base"
+	"github.com/philpearl/tt_goji_oauth/base"
 	"github.com/zenazn/goji/web"
 )
 
 func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
-	providerStore := c.Env["providerstore"].(*providers.ProviderStore)
+	context := c.Env["oauth:context"].(*base.Context)
 
 	// Get the session
-	s := c.Env["session"].(*base.Session)
-	if s == nil {
+	var session *mbase.Session
+	s, ok := c.Env["session"]
+	log.Printf("env is %v", c.Env)
+	if ok {
+		log.Printf("session in env")
+		session, ok = s.(*mbase.Session)
+	}
+
+	if !ok {
 		log.Printf("Could not retrieve session in oauth callback.")
 		http.Error(w, "no session", http.StatusBadRequest)
 		return
 	}
 
 	// Important to check we've been passed back our random value
-	val, ok := s.Get("oauth:secret")
+	val, ok := session.Get("oauth:secret")
 	if !ok {
 		log.Printf("No secret available in oauth callback")
 		http.Error(w, "OAUTH protocol error detected", http.StatusBadRequest)
@@ -50,7 +57,7 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 	// ask for some user info.  This will get our token as a side effect
 	// Not that we really need a token - we just want to identify our user
 	rcode := r.Form.Get("code")
-	provider, ok := providerStore.GetProvider(state.ProviderName)
+	provider, ok := context.ProviderStore.GetProvider(state.ProviderName)
 	if !ok {
 		http.Error(w, "Oops!", http.StatusInternalServerError)
 		return
@@ -77,14 +84,20 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 	log.Printf("Have user info %v", user)
 
 	// Get or Create a user object.  Again, some kind of plug-in storage would make sense
+	err = context.Callbacks.GetOrCreateUser(c, state.ProviderName, user)
+	if err != nil {
+		log.Printf("GetOrCreateUser callback failed. %v", err)
+		http.Error(w, "", http.StatusServiceUnavailable)
+		return
+	}
 
 	// Mark the session as logged in
-	s.Put("logged_in", true)
+	session.Put("logged_in", true)
 
 	// Redirect to final destination.
-	val, ok = s.Get("next")
+	val, ok = session.Get("next")
 	var url string
-	if !ok {
+	if !ok || val == "" {
 		url = "/"
 	} else {
 		url = val.(string)

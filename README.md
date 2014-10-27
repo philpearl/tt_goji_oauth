@@ -17,7 +17,7 @@ Assumes there's a redigo redis connection in c.Env["redis"]. Or could just use a
   - get / create user info
   - update session to include user info / logged in status
 
-  - move session out into middleware. Session needs to exist outside of the oauth code
+  x move session out into middleware. Session needs to exist outside of the oauth code
   - flesh out DB thingy
 
 /login - plain page for logging in.

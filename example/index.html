@@ -1,0 +1,13 @@
+<html>
+    <head>
+    </head>
+    <body>
+        {{if .LoggedIn}}
+        <H1>Hello {{.User.username}}</H1>
+        {{else}}
+        <form method="POST", action="/login/oauth/start/github/">
+            <input type="submit" value="Login with Github">
+        </form>
+        {{end}}
+    </body>
+</html>

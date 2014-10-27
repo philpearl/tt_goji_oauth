@@ -30,7 +30,7 @@ func newOauthStateFromString(encoded string) (*oauthState, error) {
 	return &state, err
 }
 
-func (o *oauthState) Encode() string {
+func (o *oauthState) encode() string {
 	var b bytes.Buffer
 	b64Enc := base64.NewEncoder(base64.URLEncoding, &b)
 	enc := gob.NewEncoder(b64Enc)

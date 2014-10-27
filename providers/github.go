@@ -19,6 +19,12 @@ type githubUser struct {
 	Email string `json:"email"`
 }
 
+/*
+Github() creates a github oauth client.
+
+The client ID and client secret are taken from the environment variables GITHUB_CLIENT_ID &
+GITHUB_CLIENT_SECRET
+*/
 func Github(baseUrl string) Provider {
 	options := &oauth2.Options{
 		ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
