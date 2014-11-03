@@ -40,8 +40,9 @@ func Build(baseUrl, prefix string, sessionHolder mbase.SessionHolder, callbacks 
 
 	mux.Use(mbase.BuildEnvSet("oauth:context", context))
 
-	mux.Post("/start/:provider/", views.StartLogin) // TODO - should be Post - Get easier for immediate testing
+	mux.Post("/start/:provider/", views.StartLogin)
 	mux.Get("/callback/", views.OauthCallback)
+	mux.Post("/logout/", views.Logout)
 	mux.Compile()
 
 	return mux
