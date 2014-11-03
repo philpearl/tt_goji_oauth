@@ -30,7 +30,7 @@ func Github(baseUrl string) Provider {
 		ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
 		ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
 		RedirectURL:  baseUrl + "callback/",
-		Scopes:       []string{"user"},
+		Scopes:       []string{"user:email"},
 	}
 	config, _ := oauth2.NewConfig(options, "https://github.com/login/oauth/authorize", "https://github.com/login/oauth/access_token")
 
