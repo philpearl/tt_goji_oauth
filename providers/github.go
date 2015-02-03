@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/golang/oauth2"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/github"
 )
 
 type GithubProvider struct {
@@ -30,12 +31,9 @@ func Github(baseUrl string) Provider {
 	config := &oauth2.Config{
 		ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
 		ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://github.com/login/oauth/authorize",
-			TokenURL: "https://github.com/login/oauth/access_token",
-		},
-		RedirectURL: baseUrl + "callback/",
-		Scopes:      []string{"user:email"},
+		Endpoint:     github.Endpoint,
+		RedirectURL:  baseUrl + "callback/",
+		Scopes:       []string{"user:email"},
 	}
 
 	return &GithubProvider{

@@ -3,7 +3,7 @@ package providers
 import (
 	"net/http"
 
-	"github.com/golang/oauth2"
+	"golang.org/x/oauth2"
 )
 
 const (
