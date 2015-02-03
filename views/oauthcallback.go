@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	// "github.com/golang/oauth2"
+	"github.com/golang/oauth2"
 	mbase "github.com/philpearl/tt_goji_middleware/base"
 	"github.com/philpearl/tt_goji_oauth/base"
 	"github.com/zenazn/goji/web"
@@ -62,16 +62,15 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	conf := provider.GetConfig()
-	token, err := conf.Exchange(rcode)
+	token, err := conf.Exchange(oauth2.NoContext, rcode)
 	if err != nil {
 		http.Error(w, "Authentication error", http.StatusBadGateway)
 		return
 	}
 
 	// Get some user info.
-	t := conf.NewTransport()
-	t.SetToken(token)
-	user, err := provider.GetUserInfo(t)
+	client := conf.Client(oauth2.NoContext, token)
+	user, err := provider.GetUserInfo(client)
 	if err != nil {
 		log.Printf("Failed to get information from user.  %v", err)
 		http.Error(w, "Couldn't retrieve user info", http.StatusServiceUnavailable)

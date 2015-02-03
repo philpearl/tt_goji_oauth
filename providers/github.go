@@ -3,9 +3,10 @@ package providers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/golang/oauth2"
 	"net/http"
 	"os"
+
+	"github.com/golang/oauth2"
 )
 
 type GithubProvider struct {
@@ -26,13 +27,16 @@ The client ID and client secret are taken from the environment variables GITHUB_
 GITHUB_CLIENT_SECRET
 */
 func Github(baseUrl string) Provider {
-	options := &oauth2.Options{
+	config := &oauth2.Config{
 		ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
 		ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
-		RedirectURL:  baseUrl + "callback/",
-		Scopes:       []string{"user:email"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://github.com/login/oauth/authorize",
+			TokenURL: "https://github.com/login/oauth/access_token",
+		},
+		RedirectURL: baseUrl + "callback/",
+		Scopes:      []string{"user:email"},
 	}
-	config, _ := oauth2.NewConfig(options, "https://github.com/login/oauth/authorize", "https://github.com/login/oauth/access_token")
 
 	return &GithubProvider{
 		GenericProvider: GenericProvider{
@@ -42,10 +46,10 @@ func Github(baseUrl string) Provider {
 	}
 }
 
-func (p *GithubProvider) GetUserInfo(t *oauth2.Transport) (map[string]interface{}, error) {
+func (p *GithubProvider) GetUserInfo(client *http.Client) (map[string]interface{}, error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	req.Header.Add("Accept", "application/vnd.github.v3+json")
-	resp, err := t.RoundTrip(req)
+	resp, err := client.Do(req)
 
 	if err != nil {
 		return nil, err

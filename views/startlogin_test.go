@@ -33,7 +33,7 @@ func buildTestContext(t *testing.T) *web.C {
 		t.Skipf("Cannot connect to redis. %v", err)
 	}
 	c := web.C{
-		Env: map[string]interface{}{
+		Env: map[interface{}]interface{}{
 			"redis":         conn,
 			"oauth:context": context,
 		},

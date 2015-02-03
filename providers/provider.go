@@ -1,6 +1,8 @@
 package providers
 
 import (
+	"net/http"
+
 	"github.com/golang/oauth2"
 )
 
@@ -25,7 +27,7 @@ type Provider interface {
 
 		    Information is returned in a map. Keys are defined by the PROVIDER_ constants
 	*/
-	GetUserInfo(t *oauth2.Transport) (map[string]interface{}, error)
+	GetUserInfo(t *http.Client) (map[string]interface{}, error)
 
 	/*
 	   GetConfig returns the oauth2 config for this provider

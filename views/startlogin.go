@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	// "github.com/golang/oauth2"
+	"github.com/golang/oauth2"
 	mbase "github.com/philpearl/tt_goji_middleware/base"
 	"github.com/philpearl/tt_goji_oauth/base"
 	"github.com/zenazn/goji/web"
@@ -58,7 +58,7 @@ func StartLogin(c web.C, w http.ResponseWriter, r *http.Request) {
 	state.ProviderName = providerName
 	s.Put("oauth:secret", state.Secret)
 
-	url := conf.AuthCodeURL(state.encode(), "online", "auto")
+	url := conf.AuthCodeURL(state.encode(), oauth2.AccessTypeOffline)
 	log.Printf("redirect to %s", url)
 
 	h := w.Header()
