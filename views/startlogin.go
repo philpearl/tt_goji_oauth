@@ -51,7 +51,7 @@ func StartLogin(c web.C, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Requested OAUTH provider %s not available", providerName), http.StatusNotFound)
 		return
 	}
-	conf := provider.GetConfig()
+	conf := provider.GetConfig(r)
 
 	// Create our oauth state.  This includes a random secret we check later.  This is stored in the session
 	state := newOauthState()

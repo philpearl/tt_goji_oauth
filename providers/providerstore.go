@@ -8,6 +8,7 @@ type ProviderStore struct {
 	baseUrl   string
 }
 
+// NewProviderStore() creates a provider store containing the given providers
 func NewProviderStore(baseUrl string, provider ...func(baseUrl string) Provider) *ProviderStore {
 	ps := &ProviderStore{
 		providers: make(map[string]Provider, 0),

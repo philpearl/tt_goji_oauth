@@ -44,7 +44,7 @@ func Github(baseUrl string) Provider {
 	}
 }
 
-func (p *GithubProvider) GetUserInfo(client *http.Client) (map[string]interface{}, error) {
+func (p *GithubProvider) GetUserInfo(r *http.Request, client *http.Client, token *oauth2.Token) (map[string]interface{}, error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	req.Header.Add("Accept", "application/vnd.github.v3+json")
 	resp, err := client.Do(req)

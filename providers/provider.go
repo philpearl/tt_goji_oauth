@@ -18,21 +18,17 @@ const (
 )
 
 type Provider interface {
-	/*
-	   GetName returns the name of the provider
-	*/
+	// GetName returns the name of the provider
 	GetName() string
-	/*
-			GetUserInfo gets information about the user.
+	// GetUserInfo gets information about the user.
+	//
+	// Information is returned in a map. Keys are defined by the PROVIDER_ constants
+	GetUserInfo(r *http.Request, client *http.Client, t *oauth2.Token) (map[string]interface{}, error)
 
-		    Information is returned in a map. Keys are defined by the PROVIDER_ constants
-	*/
-	GetUserInfo(t *http.Client) (map[string]interface{}, error)
+	// GetConfig returns the oauth2 config for this provider
+	GetConfig(r *http.Request) *oauth2.Config
 
-	/*
-	   GetConfig returns the oauth2 config for this provider
-	*/
-	GetConfig() *oauth2.Config
+	NeedState() bool
 }
 
 /*
@@ -80,10 +76,6 @@ type GenericProvider struct {
 	Config *oauth2.Config
 }
 
-func (p *GenericProvider) GetConfig() *oauth2.Config {
-	return p.Config
-}
-
-func (p *GenericProvider) GetName() string {
-	return p.Name
-}
+func (p *GenericProvider) GetConfig(r *http.Request) *oauth2.Config { return p.Config }
+func (p *GenericProvider) GetName() string                          { return p.Name }
+func (p *GenericProvider) NeedState() bool                          { return true }
