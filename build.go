@@ -1,6 +1,8 @@
 package tt_goji_oauth
 
 import (
+	"log"
+
 	mbase "github.com/philpearl/tt_goji_middleware/base"
 	"github.com/philpearl/tt_goji_oauth/base"
 	"github.com/philpearl/tt_goji_oauth/providers"
@@ -26,6 +28,7 @@ This function assumes that the session middleware from [tt_goji_middleware](http
 is in the stack.
 */
 func Build(baseUrl, prefix string, sessionHolder mbase.SessionHolder, callbacks base.Callbacks, provs ...func(baseUrl string) providers.Provider) *web.Mux {
+	log.Printf("build %s %s", baseUrl, prefix)
 	context := &base.Context{
 		SessionHolder: sessionHolder,
 		ProviderStore: providers.NewProviderStore(baseUrl, provs...),
@@ -41,6 +44,7 @@ func Build(baseUrl, prefix string, sessionHolder mbase.SessionHolder, callbacks 
 	mux.Use(mbase.BuildEnvSet("oauth:context", context))
 
 	mux.Post("/start/:provider/", views.StartLogin)
+	mux.Get("/start/:provider/", views.StartLogin) // TODO: temp?
 
 	mux.Get("/callback/", views.OauthCallback)
 	mux.Post("/logout/", views.Logout)
