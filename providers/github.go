@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/github"
+	"github.com/philpearl/oauth2"
+	"github.com/philpearl/oauth2/github"
 )
 
 type GithubProvider struct {

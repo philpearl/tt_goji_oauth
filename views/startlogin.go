@@ -11,7 +11,7 @@ import (
 	mbase "github.com/philpearl/tt_goji_middleware/base"
 	"github.com/philpearl/tt_goji_oauth/base"
 	"github.com/zenazn/goji/web"
-	"golang.org/x/oauth2"
+	"github.com/philpearl/oauth2"
 )
 
 /*
