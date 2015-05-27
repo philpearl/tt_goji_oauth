@@ -7,7 +7,7 @@ Add login with OAUTH to your [Goji](https://github.com/zenazn/goji) webapp.
 Currently supports github, but additional OAUTH providers can be plugged in.
 
 ## Code state
-I've only just written this and haven't used it in anger yet.
+I'm using this with http://apinalytics.tanktop.tv and http://betterrecommendations.com. In the Better Recommendations case I've created a Shopify OAUTH plugin.
 
 ## How to use
 See the example code in /example for full details, but the basics are as follows.
@@ -18,9 +18,3 @@ See the example code in /example for full details, but the basics are as follows
 4. To login, POST to /login/oauth/start/github/.  Add a 'next' parameter to control where the user is redirected to after login
 5. When login completes the callback you registered calling tt_goji_oauth.Build() will be called with user information.  You should check the user against your database at this point, and set up information in the session.
 6. The user will be redirected to /, or where-ever you specified via the next parameter.
-
-## Future
-
-1. More providers - including google & facebook that do client-side oauth flows.
-2. Redirect to a different page for a new user.
-3. User specified providers
