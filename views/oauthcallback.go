@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/philpearl/oauth2"
 	mbase "github.com/philpearl/tt_goji_middleware/base"
 	"github.com/philpearl/tt_goji_oauth/base"
 	"github.com/zenazn/goji/web"
-	"github.com/philpearl/oauth2"
 )
 
 /*
@@ -99,7 +99,7 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Couldn't retrieve user info", http.StatusServiceUnavailable)
 		return
 	}
-	log.Printf("Have user info %v", user)
+	log.Printf("Have user info %v on session %s", user, session.Id())
 
 	// Get or Create a user object.  Again, some kind of plug-in storage would make sense
 	url, err := context.Callbacks.GetOrCreateUser(c, providerName, user)
