@@ -27,7 +27,7 @@ parameters because I've been too lazy to parse the url
 This function assumes that the session middleware from [tt_goji_middleware](https://github.com/philpearl/tt_goji_middleware)
 is in the stack.
 */
-func Build(baseUrl, prefix string, sessionHolder mbase.SessionHolder, callbacks base.Callbacks, provs ...func(baseUrl string) providers.Provider) *web.Mux {
+func Build(baseUrl, prefix string, sessionHolder mbase.SessionHolder, callbacks base.Callbacks, provs ...func(baseUrl string) providers.Provider) (*web.Mux, *views.Views) {
 	log.Printf("build %s %s", baseUrl, prefix)
 	context := &base.Context{
 		SessionHolder: sessionHolder,
@@ -41,14 +41,14 @@ func Build(baseUrl, prefix string, sessionHolder mbase.SessionHolder, callbacks 
 	// match it for all endpoints
 	mux.Use(mbase.BuildStripPrefix(prefix))
 
-	mux.Use(mbase.BuildEnvSet("oauth:context", context))
+	v := views.New(context)
 
-	mux.Post("/start/:provider/", views.StartLogin)
-	mux.Get("/start/:provider/", views.StartLogin) // TODO: temp?
+	mux.Post("/start/:provider/", v.StartLogin)
+	mux.Get("/start/:provider/", v.StartLogin) // TODO: temp?
 
-	mux.Get("/callback/", views.OauthCallback)
-	mux.Post("/logout/", views.Logout)
+	mux.Get("/callback/", v.OauthCallback)
+	mux.Post("/logout/", v.Logout)
 	mux.Compile()
 
-	return mux
+	return mux, v
 }

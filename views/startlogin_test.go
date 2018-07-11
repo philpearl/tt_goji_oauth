@@ -16,7 +16,7 @@ import (
 	"github.com/philpearl/tt_goji_oauth/providers"
 )
 
-func buildTestContext(t *testing.T) *web.C {
+func buildTestContext(t *testing.T) (*web.C, *Views) {
 	// Need a providerstore in c.Env["providerstore"] and a sessionHolder in c.Env["sessionholder"]
 	sessionHolder := redis.NewSessionHolder()
 	os.Setenv("GITHUB_CLIENT_ID", "dummy")
@@ -42,15 +42,16 @@ func buildTestContext(t *testing.T) *web.C {
 		},
 	}
 
-	return &c
+	return &c, New(context)
 }
 
 func TestStartLogin(t *testing.T) {
-	c := buildTestContext(t)
+	c, v := buildTestContext(t)
 
 	r, _ := http.NewRequest("POST", "/", nil)
 	w := httptest.NewRecorder()
-	StartLogin(*c, w, r)
+
+	v.StartLogin(*c, w, r)
 
 	if w.Code != http.StatusFound {
 		t.Fatalf("expected 302? got %d, %s", w.Code, w.Body.String())
@@ -70,12 +71,12 @@ func TestStartLogin(t *testing.T) {
 }
 
 func TestStartLoginNoProvider(t *testing.T) {
-	c := buildTestContext(t)
+	c, v := buildTestContext(t)
 	delete(c.URLParams, "provider")
 
 	r, _ := http.NewRequest("POST", "/", nil)
 	w := httptest.NewRecorder()
-	StartLogin(*c, w, r)
+	v.StartLogin(*c, w, r)
 
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400 got %d, %s", w.Code, w.Body.String())
@@ -83,12 +84,12 @@ func TestStartLoginNoProvider(t *testing.T) {
 }
 
 func TestStartLoginBadProvider(t *testing.T) {
-	c := buildTestContext(t)
+	c, v := buildTestContext(t)
 	c.URLParams["provider"] = "cheese"
 
 	r, _ := http.NewRequest("POST", "/", nil)
 	w := httptest.NewRecorder()
-	StartLogin(*c, w, r)
+	v.StartLogin(*c, w, r)
 
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("expected 400 got %d, %s", w.Code, w.Body.String())
@@ -96,14 +97,14 @@ func TestStartLoginBadProvider(t *testing.T) {
 }
 
 func TestStartLoginNext(t *testing.T) {
-	c := buildTestContext(t)
+	c, vv := buildTestContext(t)
 
 	v := url.Values{}
 	v.Set("next", "http://example.com/next")
 
 	r, _ := http.NewRequest("POST", "/?"+v.Encode(), nil)
 	w := httptest.NewRecorder()
-	StartLogin(*c, w, r)
+	vv.StartLogin(*c, w, r)
 
 	if w.Code != http.StatusFound {
 		t.Fatalf("expected redirect got %d, %s", w.Code, w.Body.String())

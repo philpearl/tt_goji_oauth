@@ -6,7 +6,6 @@ import (
 
 	"github.com/philpearl/oauth2"
 	mbase "github.com/philpearl/tt_goji_middleware/base"
-	"github.com/philpearl/tt_goji_oauth/base"
 	"github.com/zenazn/goji/web"
 )
 
@@ -15,9 +14,7 @@ When the OAUTH service is done it redirects the user to this view with
 a temporary code that it can exchange for an OAUTH token.  It then calls
 the provider to get identifying information for the user.
 */
-func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
-	context := c.Env["oauth:context"].(*base.Context)
-
+func (v *Views) OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 	// Get the session
 	session, ok := mbase.SessionFromEnv(&c)
 
@@ -55,7 +52,7 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 		secret := val.(int64)
 
 		if state.Secret != secret {
-			log.Printf("Mismatched state in oauth callback.  Have %s expected %s", secret, state.Secret)
+			log.Printf("Mismatched state in oauth callback.  Have %d expected %d", secret, state.Secret)
 			http.Error(w, "OAUTH protocol error detected", http.StatusBadRequest)
 			return
 		}
@@ -68,7 +65,7 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 	// ask for some user info.  This will get our token as a side effect
 	// Not that we really need a token - we just want to identify our user
 
-	provider, ok := context.ProviderStore.GetProvider(providerName)
+	provider, ok := v.cxt.ProviderStore.GetProvider(providerName)
 	if !ok {
 		log.Printf("Provider %s not found", providerName)
 		http.Error(w, "Oops!", http.StatusInternalServerError)
@@ -102,7 +99,7 @@ func OauthCallback(c web.C, w http.ResponseWriter, r *http.Request) {
 	log.Printf("Have user info %v on session %s", user, session.Id())
 
 	// Get or Create a user object.  Again, some kind of plug-in storage would make sense
-	url, err := context.Callbacks.GetOrCreateUser(c, providerName, user)
+	url, err := v.cxt.Callbacks.GetOrCreateUser(c, providerName, user)
 	if err != nil {
 		log.Printf("GetOrCreateUser callback failed. %v", err)
 		http.Error(w, "", http.StatusServiceUnavailable)

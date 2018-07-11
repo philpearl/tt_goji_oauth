@@ -20,6 +20,6 @@ func TestOauthState(t *testing.T) {
 	}
 
 	if s.Secret != s2.Secret {
-		t.Fatalf("secrets differ %s %s", s.Secret, s2.Secret)
+		t.Fatalf("secrets differ %X %X", s.Secret, s2.Secret)
 	}
 }

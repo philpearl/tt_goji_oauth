@@ -98,7 +98,7 @@ func main() {
 
 	// Add the oauth mux under /login/oauth/
 	callbacks := Callbacks{}
-	oauthm := tt_goji_oauth.Build("http://localhost:8000/login/oauth/", "/login/oauth", sh, callbacks)
+	oauthm, _ := tt_goji_oauth.Build("http://localhost:8000/login/oauth/", "/login/oauth", sh, callbacks)
 	m.Handle("/login/oauth/*", oauthm)
 
 	// Add our main page in the root

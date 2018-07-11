@@ -8,10 +8,9 @@ import (
 	"log"
 	"net/http"
 
-	mbase "github.com/philpearl/tt_goji_middleware/base"
-	"github.com/philpearl/tt_goji_oauth/base"
-	"github.com/zenazn/goji/web"
 	"github.com/philpearl/oauth2"
+	mbase "github.com/philpearl/tt_goji_middleware/base"
+	"github.com/zenazn/goji/web"
 )
 
 /*
@@ -19,10 +18,29 @@ StartLogin kicks off the OAUTH process.
 
 Add a 'next' url parameter to control where the user is redirected to after a successful login.
 */
-func StartLogin(c web.C, w http.ResponseWriter, r *http.Request) {
-	context := c.Env["oauth:context"].(*base.Context)
-	sh := context.SessionHolder
-	providerStore := context.ProviderStore
+func (v *Views) StartLogin(c web.C, w http.ResponseWriter, r *http.Request) {
+
+	// Redirect the user to the appropriate provider url
+	providerName, ok := c.URLParams["provider"]
+	if !ok {
+		http.Error(w, "URL must contain an OAUTH provider name", http.StatusBadRequest)
+		return
+	}
+
+	url := v.StartLoginURL(c, w, r, providerName)
+	log.Printf("redirect to %s", url)
+
+	h := w.Header()
+	h.Set("Location", url)
+	w.WriteHeader(http.StatusFound)
+}
+
+// StartLoginURL returns the URL to redirect to to start the OAUTH process. It also alters the
+// session to hold login info, and updates cookies on the response. This is used when you need
+// to redirect to the OAUTH URL via "unconventional" means - as for Shopify embedded apps
+func (v *Views) StartLoginURL(c web.C, w http.ResponseWriter, r *http.Request, providerName string) string {
+	sh := v.cxt.SessionHolder
+	providerStore := v.cxt.ProviderStore
 
 	// Get a session
 	// TODO: what does it mean to login if we have a session already and it is marked as logged in?
@@ -40,16 +58,10 @@ func StartLogin(c web.C, w http.ResponseWriter, r *http.Request) {
 	next := r.Form.Get("next")
 	s.Put("next", next)
 
-	// Redirect the user to the appropriate provider url
-	providerName, ok := c.URLParams["provider"]
-	if !ok {
-		http.Error(w, "URL must contain an OAUTH provider name", http.StatusBadRequest)
-		return
-	}
 	provider, ok := providerStore.GetProvider(providerName)
 	if !ok {
 		http.Error(w, fmt.Sprintf("Requested OAUTH provider %s not available", providerName), http.StatusNotFound)
-		return
+		return ""
 	}
 	conf := provider.GetConfig(r)
 
@@ -58,10 +70,5 @@ func StartLogin(c web.C, w http.ResponseWriter, r *http.Request) {
 	state.ProviderName = providerName
 	s.Put("oauth:secret", state.Secret)
 
-	url := conf.AuthCodeURL(state.encode(), oauth2.AccessTypeOffline)
-	log.Printf("redirect to %s", url)
-
-	h := w.Header()
-	h.Set("Location", url)
-	w.WriteHeader(http.StatusFound)
+	return conf.AuthCodeURL(state.encode(), oauth2.AccessTypeOffline)
 }

@@ -13,7 +13,7 @@ Logout deletes the current session
 
 Add a 'next' url parameter to control where the user is redirected to after logout.
 */
-func Logout(c web.C, w http.ResponseWriter, r *http.Request) {
+func (v *Views) Logout(c web.C, w http.ResponseWriter, r *http.Request) {
 	// Get the session
 	session, ok := mbase.SessionFromEnv(&c)
 
